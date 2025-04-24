@@ -1,0 +1,32 @@
+{
+  "0": {
+    "summary": "詢問生日時間",
+    "category": "問句",
+    "sentiment": "中性"
+  },
+  "1": {
+    "summary": "生日被哥哥忘記的可愛抱怨",
+    "category": "日常",
+    "sentiment": "正面"
+  },
+  "2": {
+    "summary": "詢問生日日期",
+    "category": "詢問",
+    "sentiment": "中性"
+  },
+  "3": {
+    "summary": "調皮的生日提醒",
+    "category": "友情",
+    "sentiment": "正面"
+  },
+  "4": {
+    "summary": "生日資訊",
+    "category": "生日",
+    "sentiment": "中性"
+  },
+  "5": {
+    "summary": "妹妹調皮慶祝生日",
+    "category": "生日",
+    "sentiment": "正面"
+  }
+}

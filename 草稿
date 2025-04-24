@@ -1,0 +1,378 @@
+AI 女僕核心功能
+
+OpenAI/本地模型
+使用本地AI模型（如GPT-2、ChatGLM等），通过Hugging Face的transformers库加载和交互。
+本地AI模型 qwen2b_7b ollama加載
+或者集成OpenAI的API（如ChatGPT），但需要网络和API Key,加入第三方中轉站
+
+
+Live2D（虚拟形象小窗口）
+使用CubismSdkForNative-5-r.3,在桌面小窗口显示你的女僕模型。
+
+
+语音文字同步输出
+用TTS（文字转语音）库本地AI模型复转为语音。
+通过Live2D的API同步嘴型，实现“说话”效果。
+
+語音轉文字
+運用AI模型萊推我說的說話及AI
+
+
+情绪表达功能
+根据对话内容分析情绪（可以用情感分析模型或简单关键词规则），切换Live2D表情。
+例如：高兴、惊讶、生气、害羞等。
+
+
+集成視覺系統,可以看到螢幕給予回饋
+
+
+拓展功能
+
+桌面控制
+用pyautogui、pynput等库实现鼠标、键盘、窗口等操作自动化。
+
+主动对话
+设计定时或基于事件的主动对话机制，比如检测你长时间未操作时主动问候。
+
+长期记忆
+用数据库（如SQLite、MongoDB）记录用户偏好、历史对话，实现个性化记忆。
+
+联网吸收最新资讯
+集成新闻、天气、百科等API，实时获取和推送最新信息。
+
+看到你打游戏给反馈
+可以通过屏幕截图识别（如mss、opencv），或监听游戏API（如Steam、LOL等）来判断你在玩什么游戏，并给出相应反馈或加油。
+
+
+
+推荐技术栈
+Python（主逻辑、AI模型、桌面控制、TTS等）
+Electron/PyQt（桌面窗口、Live2D集成）
+Live2D SDK/JS库（虚拟形象）
+数据库（长期记忆）
+各类API（信息获取、功能扩展 
+
+
+
+
+1. 项目结构建议
+ai_maid/
+├── main.py                 # 主入口，整体调度
+├── ai/
+│   ├── local_model.py      # 本地AI模型（如Qwen2B-7B, GPT-2, ChatGLM）
+│   ├── openai_api.py       # OpenAI API对接
+│   └── emotion.py          # 情感分析
+├── tts/
+│   └── tts.py              # 本地TTS语音合成
+├── live2d/
+│   ├── live2d_window.py    # PyQt/Electron窗口集成Live2D
+│   └── l2d_api_bridge.py   # Live2D嘴型、表情控制
+├── vision/
+│   ├── screen_capture.py   # 屏幕截图
+│   └── feedback.py         # 视觉反馈（如游戏识别）
+├── desktop_control/
+│   └── control.py          # 鼠标、键盘、窗口自动化
+├── memory/
+│   └── db.py               # 数据库（如SQLite）长期记忆
+├── info/
+│   └── info_api.py         # 新闻、天气等API
+├── dialogue/
+│   └── proactive.py        # 主动对话机制
+└── config.py               # 配置文件
+2. 各模块核心实现思路
+AI对话（本地/云）
+本地模型：用transformers加载Qwen2B-7B等模型，推理生成回复。
+云模型：用openai库调用ChatGPT等API。
+可配置优先本地，网络可用时切换云端。
+Live2D集成
+推荐用PyQt+QWebEngineView嵌入Live2D网页（如L2DViewer）。
+用JS桥或API控制嘴型、表情。
+语音文字同步
+用Edge-TTS、VITS、pyttsx3等本地TTS库合成语音。
+合成时同步输出嘴型参数给Live2D。
+情绪表达
+简单可用关键词规则，进阶可用情感分析模型（如transformers的情感分类器）。
+结果映射到Live2D表情。
+视觉系统
+用mss或opencv定时截屏，分析当前屏幕内容（如检测游戏界面）。
+可扩展为摄像头视觉（如表情识别）。
+桌面控制
+用pyautogui、pynput实现鼠标、键盘、窗口操作。
+主动对话
+定时器+事件监听（如检测无操作）主动发起对话。
+长期记忆
+用sqlite3或tinydb等本地数据库存储用户偏好、历史对话。
+联网获取资讯
+用requests、aiohttp等调用新闻、天气、百科API。
+游戏反馈
+屏幕分析+游戏API监听（如Steam、LOL API）识别游戏状态，定制反馈。
+
+
+
+3. 技術棧建議
+Python：主邏輯、AI模型、TTS、桌面控制等
+PyQt5/PyQt6：桌面窗口、Live2D集成
+Live2D SDK/JS庫：虛擬形象
+SQLite：長期記憶
+Transformers：本地AI模型/情感分析
+pyttsx3/Edge-TTS/VITS：本地TTS
+pyautogui/pynput：桌面控制
+mss/opencv：视觉系统
+4. 开发建议
+优先实现核心链路：AI对话→Live2D窗口→TTS→嘴型同步
+逐步集成功能：情绪表达→视觉反馈→桌面控制→主动对话→长期记忆→联网资讯→游戏反馈
+功能可选/可配置：本地/云AI、TTS模型、Live2D模型等
+接口标准化：各模块用接口/事件通信，便于后续拓展
+5. 示例：本地AI模型+Live2D+TTS主流程伪代码
+python
+CopyInsert
+# main.py
+from ai.local_model import LocalAI
+from tts.tts import TTS
+from live2d.l2d_api_bridge import Live2DController
+
+ai = LocalAI(model_path='path/to/qwen2b_7b')
+tts = TTS()
+live2d = Live2DController()
+
+def chat(user_input):
+    reply, emotion = ai.chat(user_input)
+    tts.audio_output(reply, on_speak=lambda mouth_param: live2d.set_mouth(mouth_param))
+    live2d.set_expression(emotion)
+    return reply
+
+# PyQt窗口接收输入，调用chat(user_input)
+如果你需要某一部分详细代码样例、依赖清单、或具体模块的开发方案，可以告诉我你的优先需求，我可以帮你一步步细化和实现！
+
+
+AI女僕开发清晰步骤（总览）
+1. 环境准备
+安装 Python 3.9+（推荐 Anaconda 管理环境）
+安装 Node.js（如用 Electron）
+安装 Visual Studio 2022（如需编译 Live2D Native SDK，Windows下推荐）
+安装 Git（代码管理）
+2. 本地/云端AI模型集成
+2.1 本地模型（如 GPT-2、ChatGLM、Qwen2b_7b）
+安装 transformers 库：
+CopyInsert
+pip install transformers
+下载并加载模型（示例代码）：
+python
+CopyInsert
+from transformers import AutoModelForCausalLM, AutoTokenizer
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2b_7b")
+model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2b_7b")
+2.2 OpenAI API/第三方中转
+注册OpenAI账号，获取API Key，或找第三方API服务
+安装 openai 库：
+CopyInsert
+pip install openai
+示例调用：
+python
+CopyInsert
+import openai
+openai.api_key = "YOUR_KEY"
+response = openai.ChatCompletion.create(...)
+2.3 Ollama本地模型集成
+安装 Ollama（https://ollama.com/）
+运行命令加载模型：
+CopyInsert
+ollama run qwen2b
+Python调用可用 REST API
+3. Live2D 虚拟形象集成
+3.1 使用 CubismSdkForNative-5-r.3
+下载 Cubism SDK（https://www.live2d.com/en/download/cubism-sdk/）
+用 C++/C#/Python（需绑定）开发桌面窗口，嵌入 Live2D 模型
+或者用 Electron/PyQt + WebView 嵌入 L2DViewer（网页Live2D组件）
+3.2 实现嘴型同步
+Live2D模型支持参数控制（如MouthOpenY）
+你的TTS/语音输出时，实时将嘴型参数同步到Live2D
+4. 语音文字互转
+4.1 文字转语音（TTS）
+推荐：edge-tts、pyttsx3、VITS、Bark等
+CopyInsert
+pip install edge-tts
+示例代码：
+python
+CopyInsert
+import edge_tts
+# 生成语音文件
+4.2 语音转文字（ASR）
+推荐：openai-whisper、Vosk、科大讯飞等
+CopyInsert
+pip install openai-whisper
+示例代码：
+python
+CopyInsert
+import whisper
+model = whisper.load_model("base")
+result = model.transcribe("audio.wav")
+print(result["text"])
+5. 情绪分析与表情切换
+简单：关键词匹配（如“开心”→笑脸）
+进阶：情感分析模型（如百度ERNIE、HuggingFace情感分析）
+分析结果通过API控制Live2D表情参数
+6. 视觉系统集成
+屏幕截图：mss、opencv
+CopyInsert
+pip install mss opencv-python
+识别内容/反馈：用图像识别或关键词检测
+7. 桌面控制
+鼠标/键盘：pyautogui、pynput
+CopyInsert
+pip install pyautogui pynput
+示例代码：
+python
+CopyInsert
+import pyautogui
+pyautogui.moveTo(100, 100)
+8. 主动对话机制
+用定时器或事件监听（如检测用户长时间无操作）
+触发主动问候或提醒
+9. 长期记忆系统
+推荐用 SQLite（轻量）、MongoDB（更灵活）
+CopyInsert
+pip install sqlite3  # Python自带
+记录历史对话、用户偏好
+10. 联网获取资讯
+新闻/天气API（如和风天气、百度百科、NewsAPI等）
+用 requests 库获取并解析
+CopyInsert
+pip install requests
+11. 游戏检测与反馈
+屏幕识别：mss+opencv
+游戏API监听：Steam、LOL等需查官方文档
+识别游戏后切换Live2D表情或语音加油
+推荐技术栈总结
+| 功能 | 推荐技术 | |--------------|--------------------| | 主逻辑/AI | Python | | 桌面窗口 | Electron/PyQt | | 虚拟形象 | Live2D SDK/JS库 | | TTS/ASR | edge-tts/whisper | | 桌面控制 | pyautogui/pynput | | 长期记忆 | SQLite/MongoDB | | 视觉/识别 | mss/opencv | | 资讯获取 | requests+API |
+
+总结流程图
+环境搭建 → 2. AI模型集成 → 3. Live2D集成 → 4. TTS/ASR → 5. 情绪分析 → 6. 视觉系统 → 7. 桌面控制 → 8. 主动对话 → 9. 长期记忆 → 10. 联网资讯 → 11. 游戏反馈
+如需某一部分详细代码或具体实现例子，请告诉我你要哪一块，我可以直接给你代码模板！
+
+
+
+
+
+
+2025,4,23
+
+根據你目前的程式結構、功能列表，以及你最近的操作，這裡幫你整理已完成與尚未完成的功能進度：
+
+你已經完成的功能
+1. AI 對話主流程
+支援 OpenAI API（雲端）與本地 Ollama，自動切換。
+對話時自動檢索相關記憶並組合進 prompt。
+支援人設分離（OPENAI_PERSONA、LOCAL_PERSONA），且可自訂人設。
+CLI 互動流程完善，支援安全結束指令（exit/quit/bye/退出）。
+2. 長期記憶（Faiss 向量記憶）
+對話內容自動寫入本地 Faiss 記憶庫。
+記憶可用向量查詢（語意相似檢索）。
+3. 記憶管理 CLI 指令
+/查記憶 關鍵詞
+/導出記憶
+/刪除記憶 關鍵詞
+/標註記憶（批量摘要/分類/情感標註）
+/標註記憶永久
+/查正面記憶
+/導入記憶 路徑
+/自動清理負面
+/合併記憶 路徑
+exit/quit/bye/退出
+4. 記憶摘要/主題分類/情感標註
+faiss_memory.py 已有 analyze_text、analyze_all_memories 方法。
+main.py 支援 CLI 批量標註顯示。
+已有自動批量標註/清理定時任務（可選開啟）。
+5. 主要錯誤已排除，程式可正常執行。
+1. GPT-SoVITS 語音合成與 Live2D 嘴型同步
+main.py 還沒整合語音合成與嘴型同步接口。
+
+
+尚未完成的進階功能
+
+2. 記憶標註結果永久存檔/查詢的進階優化
+標註結果已可存 json，但與 texts 的同步與查詢功能可再加強（如多條件查詢）。
+
+3. 記憶批量導入/合併/自動清理的自動化
+CLI 指令已完成，但尚未完全自動化（如開機自動導入/合併/清理）。
+
+4. 圖形化前端（GUI/Web）
+目前僅有命令行互動，尚未有桌面 GUI 或網頁前端。
+
+實時語音輸入（語音轉文字）
+支援用戶用麥克風直接說話，語音自動轉為文字輸入。
+可選用 Whisper（OpenAI）、Vosk（本地）、Google Speech API 等語音識別模型。
+語音識別結果自動送入對話流程，和文字輸入無縫切換。
+
+5. 更進階的錯誤處理與用戶體驗優化
+可以加強提示、異常處理、記憶過多時自動摘要/分頁顯示等。
+
+
+要讓 AI「自己決定」什麼時候開啟螢幕視覺功能（自動截圖或讀取螢幕），你可以這樣設計：
+
+方案邏輯
+AI 判斷用戶需求
+只要用戶輸入或語音內容裡出現關鍵字（如「螢幕」、「截圖」、「畫面」、「幫我看一下螢幕」等），AI 就自動啟動螢幕截圖與分析功能。
+主程式自動呼叫視覺功能
+不需用戶明確下指令，AI 可以根據語意自動決定。
+主程式自動觸發視覺功能範例
+1. 先加入螢幕截圖與 OCR 函數（如上步驟）
+python
+CopyInsert
+import mss
+from PIL import Image
+import pytesseract
+
+def capture_screen(filename="screenshot.png"):
+    with mss.mss() as sct:
+        monitor = sct.monitors[1]
+        sct_img = sct.grab(monitor)
+        img = Image.frombytes('RGB', sct_img.size, sct_img.rgb)
+        img.save(filename)
+        print(f"已儲存螢幕截圖：{filename}")
+        return filename
+
+def recognize_screen_text(filename="screenshot.png"):
+    img = Image.open(filename)
+    text = pytesseract.image_to_string(img, lang="chi_tra+eng")
+    print("螢幕文字內容：")
+    print(text)
+    return text
+2. 在主對話流程自動判斷觸發
+python
+CopyInsert
+# 在主對話 while True: 迴圈裡
+if any(kw in user_input for kw in ["螢幕", "截圖", "畫面", "screen", "screenshot"]):
+    filename = capture_screen()
+    screen_text = recognize_screen_text(filename)
+    # 你可以把 screen_text 傳給 openai_chat 或 ollama_chat 讓 AI 進一步分析
+    reply = f"螢幕內容如下：\n{screen_text}"
+    print("艾利艾：", reply)
+    if TTS_ENABLED:
+        tts_play_with_lip_sync(reply, voice=TTS_VOICE, osc_controller=osc_controller)
+    continue
+進階：讓 AI 決策是否需要螢幕內容
+你也可以讓 AI 先判斷「這個問題是否需要螢幕資訊」再決定是否自動截圖，例如：
+
+python
+CopyInsert
+def needs_screen_info(prompt):
+    # 這裡可用關鍵字判斷，或用 AI 判斷
+    keywords = ["螢幕", "截圖", "畫面", "screen", "screenshot"]
+    return any(kw in prompt for kw in keywords)
+然後在主流程加上：
+
+python
+CopyInsert
+if needs_screen_info(user_input):
+    filename = capture_screen()
+    screen_text = recognize_screen_text(filename)
+    # 可以把螢幕內容加到 prompt 裡給 AI
+    user_input += f"\n[螢幕內容]\n{screen_text}\n"
+總結
+你可以讓 AI 根據語意自動決定是否開啟螢幕視覺功能。
+只要在主流程加上自動判斷與呼叫截圖即可。
+進階可讓 AI 自己決定要不要把螢幕內容當作 prompt 輸入。
+
+我要AI啟動本地多模態的視覺功能,類似陪我看螢幕的感覺 你知道who is nerosama 就好像她一樣
+
